@@ -3,7 +3,6 @@ package tracer
 import (
 	"context"
 	"fmt"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/uber/jaeger-client-go"
@@ -118,8 +117,6 @@ func StreamTraceInterceptor(tracer opentracing.Tracer) grpc.StreamServerIntercep
 		if !ok {
 			md = metadata.New(nil)
 		}
-		//var ctx1 context.Context
-		s := grpc_middleware.WrapServerStream(ss)
 		spanContext, err := tracer.Extract(opentracing.TextMap, MDReaderWriter{md})
 		if err != nil {
 			fmt.Println(err.Error())
@@ -135,11 +132,7 @@ func StreamTraceInterceptor(tracer opentracing.Tracer) grpc.StreamServerIntercep
 			ServerStream: ss,
 			ctx:          opentracing.ContextWithSpan(ss.Context(), span),
 		}
-		//ctx1 = opentracing.ContextWithSpan(ctx, span)
-		//s.WrappedContext = opentracing.ContextWithSpan(ctx1, span)
-
-		//s := newWrappedStream(ss)
-		return handler(srv, s)
+		return handler(srv, ss)
 	}
 }
 
